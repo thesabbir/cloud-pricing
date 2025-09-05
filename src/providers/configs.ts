@@ -4,6 +4,7 @@ export const VERCEL_CONFIG: ProviderConfig = {
   id: 'vercel',
   name: 'Vercel',
   category: 'hosting',
+  renderingMode: 'ssr', // Vercel pricing pages are server-side rendered
   urls: [
     'https://vercel.com/pricing',
     'https://vercel.com/docs/limits',
@@ -19,6 +20,7 @@ export const NETLIFY_CONFIG: ProviderConfig = {
   id: 'netlify',
   name: 'Netlify',
   category: 'hosting',
+  renderingMode: 'ssr', // Netlify pricing pages are server-side rendered
   urls: [
     'https://www.netlify.com/pricing/',
     'https://docs.netlify.com/manage/accounts-and-billing/billing-faq/',

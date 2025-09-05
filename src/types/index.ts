@@ -24,6 +24,7 @@ export interface ProviderConfig {
   name: string;
   urls: string[];
   category: 'hosting' | 'api' | 'cloud' | 'database' | 'auth';
+  renderingMode?: 'ssr' | 'csr' | 'auto'; // SSR = fetch, CSR = browser, auto = try fetch first
   extractionHints?: {
     selectors?: string[];
     keywords?: string[];
@@ -37,6 +38,7 @@ export interface PageData {
   screenshot?: string; // Base64 encoded
   title: string;
   scrapedAt: string;
+  error?: string; // Optional error message if scraping failed
 }
 
 export interface ScrapingResult {
