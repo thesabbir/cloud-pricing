@@ -8,20 +8,18 @@
   "dev": {
     "port": 9000
   },
-  "browser": {
-    "binding": "CLOUD_PRICING_BROWSER",
-    "experimental_remote": true
-  },
   "kv_namespaces": [
     {
       "binding": "PRICING_DATA",
-      "id": "pricing_data_dev"
+      "id": "ee6d3f81f79c4a8b8f5ccd7486c3304f",
+      "preview_id": "b53920635e8d432489705438274481b3"
     }
   ],
   "r2_buckets": [
     {
       "binding": "ARCHIVE",
-      "bucket_name": "cloud-pricing-archive-dev"
+      "bucket_name": "cloud-pricing-archive-dev",
+      "preview_bucket_name": "cloud-pricing-archive-preview"
     }
   ],
   "vars": {

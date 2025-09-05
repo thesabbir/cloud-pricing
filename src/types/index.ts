@@ -24,6 +24,10 @@ export interface ProviderConfig {
   name: string;
   urls: string[];
   category: 'hosting' | 'api' | 'cloud' | 'database' | 'auth';
+  renderingMode?: 'ssr' | 'csr' | 'auto'; // SSR = fetch, CSR = browser/container, auto = try fetch first
+  waitForSelector?: string; // CSS selector to wait for before scraping
+  waitTime?: number; // Additional wait time in milliseconds
+  scrollToBottom?: boolean; // Whether to scroll to bottom of page
   extractionHints?: {
     selectors?: string[];
     keywords?: string[];
@@ -37,6 +41,7 @@ export interface PageData {
   screenshot?: string; // Base64 encoded
   title: string;
   scrapedAt: string;
+  error?: string; // Optional error message if scraping failed
 }
 
 export interface ScrapingResult {
