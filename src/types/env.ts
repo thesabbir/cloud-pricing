@@ -1,3 +1,5 @@
+import { type BrowserWorker } from '@cloudflare/playwright';
+
 export interface Env {
   // KV Namespaces
   PRICING_DATA: KVNamespace;
@@ -6,7 +8,7 @@ export interface Env {
   ARCHIVE: R2Bucket;
   
   // Browser Rendering
-  BROWSER: any; // Cloudflare Browser binding
+  CLOUD_PRICING_BROWSER: BrowserWorker; // Cloudflare Browser binding
   
   // AI Configuration
   OPENAI_API_KEY?: string; // Optional when using AI Gateway with stored keys

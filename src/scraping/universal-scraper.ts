@@ -1,4 +1,4 @@
-import { launch } from '@cloudflare/playwright';
+import { launch, type BrowserWorker } from '@cloudflare/playwright';
 import { ProviderConfig, PageData, ScrapingResult } from '../types';
 import { Env } from '../types/env';
 import { PROVIDER_MAP } from '../providers/configs';
@@ -20,7 +20,7 @@ export class UniversalScraper {
       };
     }
 
-    const browser = await launch(this.env.BROWSER);
+    const browser = await launch(this.env.CLOUD_PRICING_BROWSER as BrowserWorker);
     
     try {
       const pages = await this.scrapeAllPages(browser, config);
@@ -57,9 +57,6 @@ export class UniversalScraper {
     const page = await browser.newPage();
     
     try {
-      // Set viewport for consistent screenshots
-      await page.setViewport({ width: 1920, height: 1080 });
-      
       // Navigate to the page with timeout
       await page.goto(url, {
         waitUntil: 'networkidle',
@@ -87,11 +84,14 @@ export class UniversalScraper {
         type: 'png'
       });
       
+      // Convert screenshot to base64
+      const screenshotBase64 = Buffer.from(screenshot).toString('base64');
+      
       return {
         url,
         html,
         text,
-        screenshot: screenshot.toString('base64'),
+        screenshot: screenshotBase64,
         title,
         scrapedAt: new Date().toISOString()
       };
@@ -118,7 +118,8 @@ export class UniversalScraper {
     } catch {
       // Continue even if selectors not found
       // The content might be dynamically loaded
-      await page.waitForTimeout(2000);
+      // Use a promise-based delay instead of waitForTimeout
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
     // Scroll to trigger lazy loading
@@ -127,7 +128,7 @@ export class UniversalScraper {
     });
     
     // Wait a bit for dynamic content
-    await page.waitForTimeout(1000);
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Scroll back to top
     await page.evaluate(() => {
