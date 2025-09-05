@@ -12,12 +12,18 @@ importers:
         specifier: ^4.9.6
         version: 4.9.6
     devDependencies:
+      '@cloudflare/playwright':
+        specifier: ^0.0.11
+        version: 0.0.11
       '@cloudflare/vite-plugin':
         specifier: ^1.2.3
-        version: 1.12.3(vite@6.3.5)(workerd@1.20250902.0)(wrangler@4.34.0)
+        version: 1.12.3(vite@6.3.5(@types/node@24.3.1))(workerd@1.20250902.0)(wrangler@4.34.0)
+      '@types/node':
+        specifier: ^24.3.1
+        version: 24.3.1
       vite:
         specifier: ^6.3.5
-        version: 6.3.5
+        version: 6.3.5(@types/node@24.3.1)
       vite-ssr-components:
         specifier: ^0.5.1
         version: 0.5.1
@@ -67,6 +73,9 @@ packages:
   '@cloudflare/kv-asset-handler@0.4.0':
     resolution: {integrity: sha512-+tv3z+SPp+gqTIcImN9o0hqE9xyfQjI1XD9pL6NuKjua9B1y7mNYv0S9cP+QEbA4ppVgGZEmKOvHX5G5Ei1CVA==}
     engines: {node: '>=18.0.0'}
+
+  '@cloudflare/playwright@0.0.11':
+    resolution: {integrity: sha512-5meAHlST5K3MKYA7TyL6Ns1XQhYB615qYZxDSn0UnSX14MFgRe+pqlq482dXbgMBappnvvsjZl+Ea3/FQcdbvQ==}
 
   '@cloudflare/unenv-preset@2.7.2':
     resolution: {integrity: sha512-JY7Uf8GhWcbOMDZX8ke2czp9f9TijvJN4CpRBs3+WYN9U7jHpj3XaV+HHm78iHkAwTm/JeBHqyQNhq/PizynRA==}
@@ -674,6 +683,9 @@ packages:
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
+  '@types/node@24.3.1':
+    resolution: {integrity: sha512-3vXmQDXy+woz+gnrTvuvNrPzekOi+Ds0ReMxw0LzBiK3a+1k0kQn9f2NWk+lgD4rJehFUmYy2gMhJ2ZI+7YP9g==}
+
   acorn-walk@8.3.2:
     resolution: {integrity: sha512-cjkyv4OtNCIeqhHrfS81QWXoCBPExR/J62oyEqepVw8WaQeSqpW2uhuLPh1m9eWhDuOo/jUXVTlifvesOWp/4A==}
     engines: {node: '>=0.4.0'}
@@ -857,6 +869,9 @@ packages:
   ufo@1.6.1:
     resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
 
+  undici-types@7.10.0:
+    resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
+
   undici@7.15.0:
     resolution: {integrity: sha512-7oZJCPvvMvTd0OlqWsIxTuItTpJBpU1tcbVl24FMn3xt3+VSunwUasmfPJRE57oNO1KsZ4PgA1xTdAX4hq8NyQ==}
     engines: {node: '>=20.18.1'}
@@ -997,13 +1012,15 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
+  '@cloudflare/playwright@0.0.11': {}
+
   '@cloudflare/unenv-preset@2.7.2(unenv@2.0.0-rc.20)(workerd@1.20250902.0)':
     dependencies:
       unenv: 2.0.0-rc.20
     optionalDependencies:
       workerd: 1.20250902.0
 
-  '@cloudflare/vite-plugin@1.12.3(vite@6.3.5)(workerd@1.20250902.0)(wrangler@4.34.0)':
+  '@cloudflare/vite-plugin@1.12.3(vite@6.3.5(@types/node@24.3.1))(workerd@1.20250902.0)(wrangler@4.34.0)':
     dependencies:
       '@cloudflare/unenv-preset': 2.7.2(unenv@2.0.0-rc.20)(workerd@1.20250902.0)
       '@remix-run/node-fetch-server': 0.8.0
@@ -1012,7 +1029,7 @@ snapshots:
       picocolors: 1.1.1
       tinyglobby: 0.2.14
       unenv: 2.0.0-rc.20
-      vite: 6.3.5
+      vite: 6.3.5(@types/node@24.3.1)
       wrangler: 4.34.0
       ws: 8.18.0
     transitivePeerDependencies:
@@ -1374,6 +1391,10 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
+  '@types/node@24.3.1':
+    dependencies:
+      undici-types: 7.10.0
+
   acorn-walk@8.3.2: {}
 
   acorn@8.14.0: {}
@@ -1605,6 +1626,8 @@ snapshots:
 
   ufo@1.6.1: {}
 
+  undici-types@7.10.0: {}
+
   undici@7.15.0: {}
 
   unenv@2.0.0-rc.20:
@@ -1623,7 +1646,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite@6.3.5:
+  vite@6.3.5(@types/node@24.3.1):
     dependencies:
       esbuild: 0.25.9
       fdir: 6.5.0(picomatch@4.0.3)
@@ -1632,6 +1655,7 @@ snapshots:
       rollup: 4.50.0
       tinyglobby: 0.2.14
     optionalDependencies:
+      '@types/node': 24.3.1
       fsevents: 2.3.3
 
   workerd@1.20250902.0:

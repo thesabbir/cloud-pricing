@@ -2,5 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cloud-pricing",
   "compatibility_date": "2025-08-03",
-  "main": "./src/index.tsx"
+  "upload_source_maps": true,
+  "main": "./src/index.tsx",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "dev": {
+    "port": 9000
+  },
+  "browser": {
+    "binding": "CLOUD_PRICING_BROWSER"
+  }
 }
