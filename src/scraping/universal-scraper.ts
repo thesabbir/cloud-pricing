@@ -1,7 +1,7 @@
 import { ProviderConfig, PageData, ScrapingResult } from '../types';
 import { Env } from '../types/env';
 import { PROVIDER_MAP } from '../providers/configs';
-import { MockScraper } from './mock-scraper';
+import type { BrowserWorker } from '@cloudflare/playwright';
 
 export class UniversalScraper {
   constructor(private env: Env) {}
@@ -26,17 +26,10 @@ export class UniversalScraper {
 
     console.log(`[Scraper] Found config for ${providerId}, URLs to scrape:`, config.urls);
 
-    // Check if browser binding is available
-    if (!this.env.CLOUD_PRICING_BROWSER || this.env.ENVIRONMENT === 'development') {
-      console.log(`[Scraper] Browser binding not available or in development mode, using mock scraper`);
-      const mockScraper = new MockScraper();
-      return await mockScraper.scrapeProvider(providerId);
-    }
-
     let browser;
     try {
       console.log(`[Scraper] Launching browser...`);
-      const { launch, type BrowserWorker } = await import('@cloudflare/playwright');
+      const { launch } = await import('@cloudflare/playwright');
       browser = await launch(this.env.CLOUD_PRICING_BROWSER as BrowserWorker);
       console.log(`[Scraper] Browser launched successfully`);
       

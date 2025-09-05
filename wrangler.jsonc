@@ -1,31 +1,30 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "cloud-pricing",
-	"compatibility_date": "2025-08-03",
-	"upload_source_maps": true,
-	"main": "./src/index.tsx",
-	"compatibility_flags": [
-		"nodejs_compat_v2"
-	],
-	"dev": {
-		"port": 9000
-	},
-	"browser": {
-		"binding": "CLOUD_PRICING_BROWSER"
-	},
-	"kv_namespaces": [
-		{
-			"binding": "PRICING_DATA",
-			"id": "pricing_data_dev"
-		}
-	],
-	"r2_buckets": [
-		{
-			"binding": "ARCHIVE",
-			"bucket_name": "cloud-pricing-archive-dev"
-		}
-	],
-	"vars": {
-		"ENVIRONMENT": "development"
-	}
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cloud-pricing",
+  "compatibility_date": "2025-08-03",
+  "upload_source_maps": true,
+  "main": "./src/index.tsx",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "dev": {
+    "port": 9000
+  },
+  "browser": {
+    "binding": "CLOUD_PRICING_BROWSER",
+    "experimental_remote": true
+  },
+  "kv_namespaces": [
+    {
+      "binding": "PRICING_DATA",
+      "id": "pricing_data_dev"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ARCHIVE",
+      "bucket_name": "cloud-pricing-archive-dev"
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "development"
+  }
 }
