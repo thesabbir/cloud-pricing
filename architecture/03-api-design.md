@@ -4,9 +4,10 @@
 
 ### Principles
 1. **Stability**: APIs never break, only evolve
-2. **Flexibility**: Support any provider without changes
-3. **Discoverability**: Self-documenting with OpenAPI
+2. **Flexibility**: Support any provider without changes - using `z.any()` for data fields
+3. **Discoverability**: Self-documenting with automatic OpenAPI generation from Zod schemas
 4. **Dual Protocol**: REST for apps, MCP for LLMs
+5. **Type Safety**: Runtime validation with Zod ensures data integrity
 
 ## 3.2 Date-Based Versioning
 
@@ -64,79 +65,117 @@ app.use('*', versionMiddleware());
 app.use('*', rateLimiting());
 ```
 
-### Core Endpoints
+### Core Endpoints with Zod Validation
+
+#### Schema Definitions
+```typescript
+import { z } from "zod";
+
+// Flexible pricing data schema - maintains schema-less design
+export const pricingDataResponseSchema = z.object({
+  provider: z.string(),
+  scrapedAt: z.string(),
+  sources: z.array(z.object({
+    url: z.string(),
+    type: z.enum(["pricing", "limits", "fair-use", "docs"]),
+    scrapedAt: z.string(),
+  })),
+  data: z.any(), // Flexible data field for provider-specific structures
+  metadata: z.object({
+    confidence: z.number(),
+    extractionModel: z.string(),
+    processingTime: z.number(),
+    schemaVersion: z.string(),
+  }),
+});
+```
 
 #### 1. List Providers
 ```typescript
-const listProvidersRoute = createRoute({
-  method: 'get',
-  path: '/providers',
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: z.object({
-            providers: z.array(z.object({
-              id: z.string(),
-              name: z.string(),
-              category: z.string(),
-              available: z.boolean()
-            }))
-          })
-        }
-      }
-    }
-  },
-  tags: ['Providers'],
-  description: 'List all available providers'
-});
+import { describeRoute, resolver } from "hono-openapi";
+
+providersRouter.get(
+  "/",
+  describeRoute({
+    tags: ["Providers"],
+    summary: "List all providers",
+    description: "Returns a list of all available cloud providers",
+    responses: {
+      200: {
+        description: "List of providers",
+        content: {
+          "application/json": {
+            schema: resolver(providersListResponseSchema),
+          },
+        },
+      },
+    },
+  }),
+  async (c) => {
+    // Implementation
+  }
+);
 ```
 
 #### 2. Get Provider Data
 ```typescript
-const getProviderRoute = createRoute({
-  method: 'get',
-  path: '/providers/{provider}',
-  request: {
-    params: z.object({
-      provider: z.string()
-    }),
-    headers: z.object({
-      'API-Version': z.string().optional()
-    })
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: PricingDataSchema
-        }
-      }
-    }
-  }
-});
+import { validator as zValidator } from "hono-openapi";
 
-app.openapi(getProviderRoute, async (c) => {
-  const provider = c.req.param('provider');
-  const version = c.req.header('API-Version') || LATEST_VERSION;
-  
-  // Get raw data
-  const raw = await c.env.KV.get(`pricing:${provider}:current`);
-  if (!raw) return c.notFound();
-  
-  // Transform for version
-  const transformer = getTransformer(version);
-  const response = transformer.transform(JSON.parse(raw));
-  
-  return c.json(response);
-});
+providersRouter.get(
+  "/:provider",
+  describeRoute({
+    tags: ["Providers"],
+    summary: "Get provider pricing data",
+    description: "Returns pricing data for a specific cloud provider",
+    responses: {
+      200: {
+        description: "Provider pricing data",
+        content: {
+          "application/json": {
+            schema: resolver(pricingDataResponseSchema),
+          },
+        },
+      },
+      404: {
+        description: "Provider not found",
+        content: {
+          "application/json": {
+            schema: resolver(errorResponseSchema),
+          },
+        },
+      },
+    },
+  }),
+  zValidator("param", providerParamsSchema),
+  async (c) => {
+    const { provider } = c.req.valid("param");
+    const kvStore = new KVStore(c.env);
+    
+    const data = await kvStore.getCurrentPricing(provider);
+    if (!data) {
+      return c.json(
+        { error: "NOT_FOUND", message: `Provider ${provider} not found` },
+        404
+      );
+    }
+    
+    // Add API version headers
+    c.header("API-Version", "2024-11-20");
+    c.header("API-Version-Latest", "2024-11-20");
+    
+    return c.json(data);
+  }
+);
 ```
 
 #### 3. Trigger Scraping
 ```typescript
-const triggerScrapingRoute = createRoute({
-  method: 'post',
-  path: '/providers/{provider}/refresh',
+providersRouter.post(
+  "/:provider/refresh",
+  describeRoute({
+    tags: ["Providers"],
+    summary: "Refresh provider data",
+    description: "Triggers fresh scraping of provider pricing data",
   request: {
     params: z.object({
       provider: z.string()
@@ -385,27 +424,43 @@ app.get('/docs', apiReference({
 }));
 ```
 
-### API Documentation Structure
-```yaml
-openapi: 3.1.0
-info:
-  title: Cloud Pricing API
-  version: 2024-11-20
-  
-paths:
-  /providers:
-    get:
-      summary: List all providers
-      tags: [Providers]
-      
-  /providers/{provider}:
-    get:
-      summary: Get provider data
-      parameters:
-        - name: API-Version
-          in: header
-          schema:
-            type: string
+### API Documentation with hono-openapi
+
+The API documentation is automatically generated from Zod schemas and route descriptions:
+
+```typescript
+// Automatic OpenAPI generation
+import { openAPIRouteHandler } from "hono-openapi";
+
+apiRouter.get(
+  "/openapi.json",
+  openAPIRouteHandler(apiRouter, {
+    documentation: {
+      info: {
+        title: "Cloud Pricing API",
+        version: "1.0.0",
+        description: "API for aggregating cloud provider pricing data",
+      },
+      servers: [
+        { url: "/api", description: "API Server" },
+      ],
+      tags: [
+        { name: "Info", description: "API information endpoints" },
+        { name: "Providers", description: "Cloud provider pricing endpoints" },
+      ],
+    },
+  })
+);
+
+// Scalar UI for interactive documentation
+apiRouter.get(
+  "/docs",
+  Scalar({
+    spec: { url: "/api/openapi.json" },
+    theme: "purple",
+    layout: "modern",
+  })
+);
             example: "2024-11-20"
             
 components:

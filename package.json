@@ -9,7 +9,13 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "dependencies": {
-    "hono": "^4.9.6"
+    "@modelcontextprotocol/sdk": "^1.17.5",
+    "@scalar/hono-api-reference": "^0.9.16",
+    "hono": "^4.9.6",
+    "hono-openapi": "^1.0.0",
+    "openai": "^5.19.1",
+    "zod": "^4.1.5",
+    "zod-openapi": "^5.4.0"
   },
   "devDependencies": {
     "@cloudflare/playwright": "^0.0.11",
