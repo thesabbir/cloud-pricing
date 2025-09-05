@@ -61,9 +61,9 @@ testRouter.get('/test-browser', async (c) => {
     console.log('[Test] Testing browser launch...');
     
     // Import directly for testing
-    const { launch, type BrowserWorker } = await import('@cloudflare/playwright');
+    const { launch } = await import('@cloudflare/playwright');
     
-    const browser = await launch(c.env.CLOUD_PRICING_BROWSER as BrowserWorker);
+    const browser = await launch(c.env.CLOUD_PRICING_BROWSER);
     console.log('[Test] Browser launched successfully');
     
     const page = await browser.newPage();
