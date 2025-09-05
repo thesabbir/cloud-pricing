@@ -9,7 +9,7 @@
     "port": 9000
   },
   "browser": {
-    "binding": "BROWSER"
+    "binding": "CLOUD_PRICING_BROWSER"
   },
   "kv_namespaces": [
     {
