@@ -11,12 +11,15 @@ export class LLMExtractor {
     const useGateway = env.USE_AI_GATEWAY === 'true';
     
     if (useGateway && env.AI_GATEWAY_URL) {
-      // Using Cloudflare AI Gateway with stored keys
+      // Using Cloudflare AI Gateway - requires OPENAI_API_KEY to be passed through
+      if (!env.OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY is required when using AI Gateway');
+      }
       this.openai = new OpenAI({
-        apiKey: 'gateway-managed', // Dummy key since the gateway has the real key
+        apiKey: env.OPENAI_API_KEY,
         baseURL: env.AI_GATEWAY_URL,
         defaultHeaders: {
-          // AI Gateway manages the actual OpenAI API key
+          // AI Gateway will forward the OpenAI API key
         }
       });
     } else if (env.OPENAI_API_KEY) {
