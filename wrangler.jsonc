@@ -14,15 +14,13 @@
   "kv_namespaces": [
     {
       "binding": "PRICING_DATA",
-      "id": "pricing_data_dev",
-      "preview_id": "pricing_data_preview"
+      "id": "pricing_data_dev"
     }
   ],
   "r2_buckets": [
     {
       "binding": "ARCHIVE",
-      "bucket_name": "cloud-pricing-archive-dev",
-      "preview_bucket_name": "cloud-pricing-archive-preview"
+      "bucket_name": "cloud-pricing-archive-dev"
     }
   ],
   "vars": {
