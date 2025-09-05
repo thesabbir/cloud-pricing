@@ -1,173 +1,155 @@
 # Cloud Pricing API
 
-A sophisticated LLM-powered API that aggregates and serves pricing data from 30+ cloud providers using intelligent web scraping and flexible data structures.
+A Cloudflare Workers-based API that aggregates cloud provider pricing data using LLM-powered extraction and browser rendering.
 
-## 🚀 Features
+## Features
 
-- **Universal Provider Support**: Works with any cloud provider's pricing model
-- **LLM-Powered Extraction**: Uses GPT-4 for intelligent data extraction
-- **Flexible Data Structures**: No rigid schemas - each provider stores data naturally
-- **Stable API**: Date-based versioning ensures clients never break
-- **Dual Protocol**: REST API + MCP (Model Context Protocol) for LLM integration
-- **Multi-Page Scraping**: Aggregates data from multiple pages per provider
-- **Smart Validation**: Multi-layer validation ensures data quality
+- 🤖 **LLM-Powered Extraction**: Uses GPT-4 to intelligently extract pricing data from any provider website
+- 🌐 **Browser Rendering**: Scrapes dynamic content using Cloudflare Browser Rendering
+- 📊 **Flexible Schema**: Each provider stores data in its natural format - no rigid schemas
+- 📅 **Date-Based Versioning**: Stripe-style API versioning (e.g., `2024-11-20`)
+- 🔄 **Automatic Updates**: Scheduled scraping keeps pricing data current
+- 📝 **OpenAPI Documentation**: Self-documenting API with Scalar UI
 
-## 📚 Documentation
+## Prerequisites
 
-Complete architecture documentation is available in the [`architecture/`](./architecture/) directory:
+- Node.js 18+ and pnpm
+- Cloudflare account with Workers Paid plan (for Browser Rendering)
+- OpenAI API key (for LLM extraction)
 
-- [System Overview](./architecture/01-system-overview.md) - High-level architecture and design principles
-- [Data Architecture](./architecture/02-data-architecture.md) - Data flow, storage, and validation
-- [API Design](./architecture/03-api-design.md) - REST API, MCP protocol, and versioning
-- [Implementation Plan](./architecture/04-implementation-plan.md) - 5-week development roadmap
+## Setup
 
-## 🛠️ Tech Stack
-
-- **Runtime**: Cloudflare Workers
-- **Framework**: Hono with OpenAPI
-- **Scraping**: Cloudflare Browser Rendering (Playwright)
-- **AI**: OpenAI GPT-4 via Cloudflare AI Gateway
-- **Storage**: KV (data) + R2 (archives)
-- **Validation**: Zod + Multi-layer validation pipeline
-
-## 🚦 Quick Start
-
-### Development Setup
-
+1. Install dependencies:
 ```bash
-# Install dependencies
 pnpm install
+```
 
-# Configure environment
-cp .env.example .env
-# Add your OpenAI API key and Cloudflare credentials
-
-# Generate TypeScript types
+2. Generate TypeScript types:
+```bash
 pnpm run cf-typegen
+```
 
-# Run locally
+3. Configure environment variables in `wrangler.jsonc` or create `.dev.vars`:
+```env
+OPENAI_API_KEY=your-key-here
+```
+
+## Development
+
+### Local Development with Mock Data
+
+For local development without Browser Rendering:
+```bash
 pnpm run dev
 ```
 
-### Deployment
+This uses a mock scraper that returns sample data for testing.
+
+### Remote Development with Real Browser Rendering
+
+To use actual Browser Rendering (requires Cloudflare account):
+```bash
+pnpm run dev:remote
+```
+
+**Important**: Browser Rendering doesn't work in pure local mode. You must use `--remote` flag to connect to Cloudflare's infrastructure.
+
+## API Endpoints
+
+### Core Endpoints
+
+- `GET /api/info` - API information
+- `GET /api/providers` - List all providers
+- `GET /api/providers/:name` - Get provider pricing data
+- `POST /api/providers/:name/refresh` - Trigger fresh scraping
+
+### Testing Endpoints (Development Only)
+
+- `GET /api/test/test-browser` - Test browser launch
+- `GET /api/test/:provider/test-scrape` - Test provider scraping with detailed logs
+
+### Documentation
+
+- `GET /api/docs` - Interactive API documentation (Scalar UI)
+- `GET /api/openapi.json` - OpenAPI specification
+
+## Project Structure
+
+```
+src/
+├── index.tsx              # Main app entry
+├── api/
+│   ├── router.ts          # API router with CORS
+│   ├── info/              # Info endpoints
+│   ├── providers/         # Provider endpoints
+│   └── schemas.ts         # Zod schemas
+├── scraping/
+│   ├── universal-scraper.ts  # Browser rendering scraper
+│   └── mock-scraper.ts       # Mock scraper for local dev
+├── extraction/
+│   └── llm-extractor.ts   # GPT-4 extraction
+├── storage/
+│   ├── kv.ts              # KV store for pricing data
+│   └── r2.ts              # R2 for archives
+├── validation/
+│   └── pipeline.ts        # Multi-layer validation
+└── types/                 # TypeScript types
+```
+
+## Adding New Providers
+
+1. Add provider configuration in `src/providers/configs.ts`:
+```typescript
+PROVIDER_MAP.set('new-provider', {
+  id: 'new-provider',
+  name: 'New Provider',
+  category: 'compute',
+  urls: [
+    'https://newprovider.com/pricing',
+    'https://newprovider.com/limits'
+  ]
+});
+```
+
+2. The system automatically handles:
+   - Multi-page scraping
+   - LLM extraction
+   - Data validation
+   - Storage in KV/R2
+
+No schema changes or deployments required!
+
+## Deployment
 
 ```bash
-# Deploy to Cloudflare Workers
 pnpm run deploy
 ```
 
-## 📖 API Usage
+## Architecture
 
-### REST API
+- **Runtime**: Cloudflare Workers with nodejs_compat_v2
+- **Scraping**: Cloudflare Browser Rendering (Playwright)
+- **AI**: OpenAI GPT-4 via Cloudflare AI Gateway
+- **Storage**: 
+  - KV Store for current pricing data
+  - R2 for archives and screenshots
+- **Validation**: Multi-layer pipeline with confidence scoring
 
-```bash
-# Get provider data
-curl https://api.cloudpricing.dev/providers/vercel \
-  -H "API-Version: 2024-11-20"
+## Troubleshooting
 
-# Trigger fresh scraping
-curl -X POST https://api.cloudpricing.dev/providers/vercel/refresh \
-  -H "Authorization: Bearer YOUR_API_KEY"
+### Browser Rendering Not Working
 
-# Search across providers
-curl https://api.cloudpricing.dev/search?q=gpu+pricing
-```
+- Ensure you're on a Workers Paid plan
+- Use `pnpm run dev:remote` instead of `pnpm run dev`
+- Check browser binding in `wrangler.jsonc`
 
-### TypeScript SDK
+### Mock Data in Development
 
-```typescript
-import { CloudPricingClient } from '@cloud-pricing/sdk';
+The system automatically uses mock data when:
+- Running with `pnpm run dev` (local mode)
+- Browser binding is not available
+- `ENVIRONMENT` is set to `development`
 
-const client = new CloudPricingClient({
-  apiKey: 'your-api-key',
-  apiVersion: '2024-11-20' // Optional - uses latest by default
-});
-
-// Get provider data
-const vercel = await client.getProvider('vercel');
-console.log(vercel.pricing.raw); // Provider-specific structure
-
-// Search across all providers
-const results = await client.search('GPU pricing');
-```
-
-### MCP Integration
-
-The API supports Model Context Protocol for direct LLM integration:
-
-```javascript
-// In Claude or other MCP-compatible LLMs
-const pricing = await mcp.use('cloud-pricing', 'get_provider', {
-  provider: 'openai'
-});
-```
-
-## 🔧 Development
-
-### Project Structure
-
-```
-cloud-pricing/
-├── architecture/        # Complete architecture documentation
-├── src/
-│   ├── api/            # REST API routes and handlers
-│   ├── scraping/       # Web scraping engine
-│   ├── extraction/     # LLM-powered data extraction
-│   ├── validation/     # Multi-layer validation pipeline
-│   └── storage/        # KV and R2 storage management
-├── wrangler.toml       # Cloudflare Workers configuration
-└── package.json
-```
-
-### Adding a New Provider
-
-1. Add provider configuration to the registry
-2. Test scraping with `pnpm run test:provider [name]`
-3. Deploy changes with `pnpm run deploy`
-
-No schema changes required - the system automatically adapts to new providers!
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pnpm test
-
-# Run specific test suites
-pnpm test:unit
-pnpm test:integration
-pnpm test:e2e
-
-# Test a specific provider
-pnpm test:provider vercel
-```
-
-## 📊 Supported Providers
-
-Currently supporting 30+ providers including:
-- **Hosting**: Vercel, Netlify, Render, Railway
-- **Cloud**: AWS, GCP, Azure, DigitalOcean
-- **AI/ML**: OpenAI, Anthropic, Cohere, Replicate
-- **Database**: MongoDB, Supabase, PlanetScale, Neon
-- **And many more...**
-
-## 🔒 Security
-
-- Public pricing data only (no authentication scraping)
-- Rate limiting and respectful scraping
-- API key authentication for write operations
-- No storage of credentials or PII
-
-## 📝 License
+## License
 
 MIT
-
-## 🤝 Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
-
-## 🔗 Links
-
-- [API Documentation](https://api.cloudpricing.dev/docs)
-- [OpenAPI Spec](https://api.cloudpricing.dev/openapi.json)
-- [Architecture Docs](./architecture/)
