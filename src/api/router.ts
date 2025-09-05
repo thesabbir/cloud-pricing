@@ -3,6 +3,7 @@ import { cors } from "hono/cors";
 import { openAPIRouteHandler } from "hono-openapi";
 import infoRouter from "./info/route";
 import providersRouter from "./providers/route";
+import testRouter from "./providers/test-scrape";
 import type { Env } from "../types/env";
 import { Scalar } from "@scalar/hono-api-reference";
 
@@ -21,6 +22,7 @@ apiRouter.use(
 // Mount routers
 apiRouter.route("/info", infoRouter);
 apiRouter.route("/providers", providersRouter);
+apiRouter.route("/test", testRouter);
 
 // Generate OpenAPI spec from routes dynamically
 apiRouter.get(

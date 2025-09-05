@@ -10,20 +10,31 @@ export class UniversalScraper {
     const startTime = Date.now();
     const config = PROVIDER_MAP.get(providerId);
     
+    console.log(`[Scraper] Starting scrape for provider: ${providerId}`);
+    
     if (!config) {
+      const error = `Provider ${providerId} not found in PROVIDER_MAP`;
+      console.error(`[Scraper] ${error}`);
       return {
         success: false,
         provider: providerId,
         pages: [],
-        error: `Provider ${providerId} not found`,
+        error,
         duration: Date.now() - startTime
       };
     }
 
-    const browser = await launch(this.env.CLOUD_PRICING_BROWSER as BrowserWorker);
-    
+    console.log(`[Scraper] Found config for ${providerId}, URLs to scrape:`, config.urls);
+
+    let browser;
     try {
+      console.log(`[Scraper] Launching browser...`);
+      browser = await launch(this.env.CLOUD_PRICING_BROWSER as BrowserWorker);
+      console.log(`[Scraper] Browser launched successfully`);
+      
       const pages = await this.scrapeAllPages(browser, config);
+      
+      console.log(`[Scraper] Successfully scraped ${pages.length} pages`);
       
       return {
         success: true,
@@ -32,15 +43,23 @@ export class UniversalScraper {
         duration: Date.now() - startTime
       };
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : '';
+      console.error(`[Scraper] Error during scraping:`, errorMessage);
+      console.error(`[Scraper] Stack trace:`, errorStack);
+      
       return {
         success: false,
         provider: providerId,
         pages: [],
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: `${errorMessage}\n\nStack: ${errorStack}`,
         duration: Date.now() - startTime
       };
     } finally {
-      await browser.close();
+      if (browser) {
+        console.log(`[Scraper] Closing browser...`);
+        await browser.close();
+      }
     }
   }
 
@@ -54,19 +73,23 @@ export class UniversalScraper {
   }
 
   private async scrapePage(browser: any, url: string, config: ProviderConfig): Promise<PageData> {
+    console.log(`[Scraper] Scraping page: ${url}`);
     const page = await browser.newPage();
     
     try {
+      console.log(`[Scraper] Navigating to ${url}...`);
       // Navigate to the page with timeout
       await page.goto(url, {
         waitUntil: 'networkidle',
         timeout: 30000
       });
+      console.log(`[Scraper] Navigation complete for ${url}`);
       
       // Wait for content to load
       await this.waitForContent(page, config);
       
       // Extract data
+      console.log(`[Scraper] Extracting data from ${url}...`);
       const title = await page.title();
       const html = await page.content();
       const text = await page.evaluate(() => {
@@ -78,6 +101,7 @@ export class UniversalScraper {
         return document.body?.innerText || '';
       });
       
+      console.log(`[Scraper] Taking screenshot for ${url}...`);
       // Take screenshot
       const screenshot = await page.screenshot({
         fullPage: true,
@@ -87,6 +111,8 @@ export class UniversalScraper {
       // Convert screenshot to base64
       const screenshotBase64 = Buffer.from(screenshot).toString('base64');
       
+      console.log(`[Scraper] Successfully scraped ${url} - Title: ${title}, Text length: ${text.length}`);
+      
       return {
         url,
         html,
@@ -95,6 +121,9 @@ export class UniversalScraper {
         title,
         scrapedAt: new Date().toISOString()
       };
+    } catch (error) {
+      console.error(`[Scraper] Error scraping ${url}:`, error);
+      throw error;
     } finally {
       await page.close();
     }

@@ -221,10 +221,14 @@ providersRouter.post(
       const result = await performScraping(provider, jobId, c.env);
       return c.json(result, 200);
     } catch (error) {
+      console.error(`[Provider Route] Scraping failed for ${provider}:`, error);
       return c.json(
         {
           error: "SCRAPING_FAILED",
           message: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : undefined,
+          provider,
+          jobId,
         },
         500
       );
